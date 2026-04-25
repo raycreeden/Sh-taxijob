@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Taxi Job</title>
+<link rel="stylesheet" href="style.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- ════ NOTIFY ════ -->
+<div id="notify-container"></div>
+
+<!-- ════ TRIP NOTIFY (violeta, apilable) ════ -->
+<div id="trip-notify-container"></div>
+
+<!-- ════ CLIENT TRIP UI (civil) ════ -->
+<div id="client-trip-overlay" class="hidden">
+  <div id="client-trip-panel">
+    <div class="ctrip-header">
+      <span><i class="fas fa-taxi"></i> Tu Viaje</span>
+      <button class="ctrip-close" onclick="postNui('closeClientUI');document.getElementById('client-trip-overlay').classList.add('hidden')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="ctrip-body">
+      <div class="ctrip-meter">
+        <div class="ctrip-row"><span>Distancia recorrida</span><span id="ct-meters">0 m</span></div>
+        <div class="ctrip-row"><span>Costo actual</span><span id="ct-cost" class="cost-val">$0</span></div>
+        <div class="ctrip-row"><span>Propina</span><span id="ct-tip">$0</span></div>
+        <div class="ctrip-row total"><span>Total estimado</span><span id="ct-total">$0</span></div>
+      </div>
+      <div id="ct-tip-section">
+        <p class="tip-label">Dejar propina (antes de finalizar)</p>
+        <div id="ct-tip-buttons" class="tip-buttons"></div>
+        <p id="ct-tip-info" class="ct-tip-info">Sin propina.</p>
+      </div>
+      <div id="ct-change-dest" class="hidden">
+        <button class="btn-change-dest" id="btn-change-dest"><i class="fas fa-map-marker-alt"></i> Cambiar destino (1 vez)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ VEHICLE MENU popup ════ -->
+<div id="vehicle-menu-overlay" class="hidden">
+  <div id="vehicle-menu">
+    <div class="vmenu-hdr"><span><i class="fas fa-car"></i> Garage Taxi</span><button class="icon-btn" id="btn-close-vmenu"><i class="fas fa-times"></i></button></div>
+    <div id="vmenu-list" class="vmenu-list"></div>
+    <div class="vmenu-ftr"><button class="btn-store" id="btn-store-veh"><i class="fas fa-parking"></i> Guardar vehículo actual</button></div>
+  </div>
+</div>
+
+<!-- ════ TABLET ════ -->
+<div id="tablet-overlay" class="hidden">
+  <div id="tablet">
+
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <i class="fas fa-taxi"></i>
+        <span id="company-name-display" title="Click para editar (solo propietario)">Taxi Corp</span>
+        <button id="btn-edit-company-name" class="icon-btn-sm hidden" title="Editar nombre"><i class="fas fa-pencil-alt"></i></button>
+      </div>
+      <div id="duty-banner" class="duty-banner off">
+        <i class="fas fa-circle" id="duty-banner-dot"></i>
+        <span id="duty-banner-text">Fuera de Servicio</span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="dashboard"><i class="fas fa-chart-pie"></i><span>Dashboard</span></button>
+        <button class="nav-btn" data-tab="empleados"><i class="fas fa-users"></i><span>Empleados</span></button>
+        <button class="nav-btn" data-tab="salarios"><i class="fas fa-dollar-sign"></i><span>Salarios</span></button>
+        <button class="nav-btn" data-tab="ubicaciones"><i class="fas fa-map-marker-alt"></i><span>Ubicaciones</span></button>
+        <button class="nav-btn" data-tab="vehiculos"><i class="fas fa-car"></i><span>Vehículos</span></button>
+        <button class="nav-btn" data-tab="viajes"><i class="fas fa-route"></i><span>Viajes</span></button>
+        <button class="nav-btn" data-tab="viajes-config"><i class="fas fa-sliders-h"></i><span>Viajes Config</span></button>
+        <button class="nav-btn" data-tab="servicio"><i class="fas fa-clipboard-list"></i><span>Servicio</span></button>
+        <button class="nav-btn" data-tab="viajes-realizados"><i class="fas fa-history"></i><span>Viajes Realizados</span></button>
+        <button class="nav-btn" data-tab="empresa"><i class="fas fa-building"></i><span>Cuenta Empresa</span></button>
+        <button class="nav-btn" data-tab="nivel"><i class="fas fa-star"></i><span>Nivel</span></button>
+        <button class="nav-btn" data-tab="permisos"><i class="fas fa-shield-alt"></i><span>Permisos</span></button>
+        <button class="nav-btn" data-tab="alertas-config"><i class="fas fa-bell"></i><span>Alertas Config</span></button>
+        <button class="nav-btn" data-tab="invitar"><i class="fas fa-user-plus"></i><span>Invitar</span></button>
+        <button class="nav-btn" data-tab="notas"><i class="fas fa-sticky-note"></i><span>Notas</span></button>
+        <button class="nav-btn" data-tab="radio"><i class="fas fa-broadcast-tower"></i><span>Radio</span></button>
+        <button class="nav-btn" data-tab="faq"><i class="fas fa-book-open"></i><span>FAQ</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="duty-btn" id="btn-duty"><i class="fas fa-play-circle"></i><span id="duty-label">Iniciar Servicio</span></button>
+        <button class="close-x" id="btn-close-tablet"><i class="fas fa-times"></i> Cerrar</button>
+      </div>
+    </div>
+
+    <div class="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="tab-panel active" id="panel-dashboard">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-chart-pie"></i> Panel Principal</div>
+          <div id="duty-required-banner" class="duty-req-banner hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            Debés <strong>Iniciar Servicio</strong> para interactuar con el mundo.
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div><p class="stat-label">Online</p><p class="stat-value" id="stat-online">0</p></div></div>
+            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-hard-hat"></i></div><div><p class="stat-label">En Servicio</p><p class="stat-value" id="stat-onduty">0</p></div></div>
+            <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-route"></i></div><div><p class="stat-label">Viajes Activos</p><p class="stat-value" id="stat-trips">0</p></div></div>
+            <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-crown"></i></div><div><p class="stat-label">Tu Rol</p><p class="stat-value" id="stat-myrole">—</p></div></div>
+            <div class="stat-card" style="grid-column:span 2"><div class="stat-icon" id="duty-icon-card"><i class="fas fa-circle" id="duty-dot"></i></div><div><p class="stat-label">Próximo Salario</p><p class="stat-value" id="stat-next-salary">—</p><p class="stat-sublabel" id="stat-duty-status">Fuera de Servicio</p></div></div>
+            <div class="stat-card" style="grid-column:span 2"><div class="stat-icon purple"><i class="fas fa-tasks"></i></div><div><p class="stat-label">Misiones Diarias · Reset en</p><p class="stat-value" id="stat-daily-timer">—</p><p class="stat-sublabel">El timer corre aunque estés offline</p></div></div>
+          </div>
+          <!-- Viaje activo del taxista (si tiene uno) -->
+          <div id="active-trip-dashboard" class="hidden">
+            <div class="section-title"><i class="fas fa-route"></i> Viaje en curso</div>
+            <div class="active-trip-card">
+              <div class="atrip-row"><span>Destino</span><span id="atrip-dest">—</span></div>
+              <div class="atrip-row"><span>Metros</span><span id="atrip-meters">0 m</span></div>
+              <div class="atrip-row"><span>Costo actual</span><span id="atrip-cost">$0</span></div>
+              <div class="atrip-row"><span>Propina</span><span id="atrip-tip">$0</span></div>
+              <button class="btn-finish-trip" id="btn-finish-trip"><i class="fas fa-flag-checkered"></i> Finalizar Viaje</button>
+              <button class="btn-cancel-trip-small" id="btn-cancel-active-trip"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLEADOS -->
+      <div class="tab-panel" id="panel-empleados">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-users"></i> Empleados</div>
+          <div class="emp-tabs">
+            <button class="emp-tab-btn active" data-et="online">Online <span class="badge" id="badge-online">0</span></button>
+            <button class="emp-tab-btn" data-et="duty">En Servicio <span class="badge green-badge" id="badge-duty">0</span></button>
+            <button class="emp-tab-btn" data-et="offline">Offline <span class="badge red-badge" id="badge-offline">0</span></button>
+          </div>
+          <div id="emp-panel-online"  class="list-container mt12"><p class="empty-msg">Cargando...</p></div>
+          <div id="emp-panel-duty"    class="list-container mt12 hidden"><p class="empty-msg">Nadie en servicio.</p></div>
+          <div id="emp-panel-offline" class="list-container mt12 hidden"><p class="empty-msg">Nadie offline.</p></div>
+        </div>
+      </div>
+
+      <!-- SALARIOS -->
+      <div class="tab-panel" id="panel-salarios">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-dollar-sign"></i> Salarios</div>
+          <div id="salary-no-perm" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para editar salarios.</div>
+          <div class="card mb16">
+            <div class="card-header"><i class="fas fa-clock"></i> Intervalo de pago</div>
+            <div class="input-row mt12">
+              <input type="number" id="salary-interval-input" min="1" max="999" placeholder="1"/>
+              <span class="unit-label">min</span>
+              <button class="btn-primary" id="btn-save-interval">Guardar</button>
+            </div>
+          </div>
+          <div id="grades-salary-list" class="list-container"></div>
+        </div>
+      </div>
+
+      <!-- UBICACIONES -->
+      <div class="tab-panel" id="panel-ubicaciones">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-map-marker-alt"></i> Ubicaciones & Markers</div>
+          <div id="loc-no-perm" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para editar ubicaciones.</div>
+          <div class="card mb16">
+            <div class="card-header"><i class="fas fa-paint-brush"></i> Configuración de Markers</div>
+            <div class="marker-grid mt14">
+              <div class="form-group"><label class="field-label">Tipo</label>
+                <select id="marker-type-select" class="sh-select mt6">
+                  <option value="0">Marker 0 — Flecha</option>
+                  <option value="1" selected>Marker 1 — Cilindro</option>
+                  <option value="2">Marker 2 — Checkpoint</option>
+                </select></div>
+              <div class="form-group"><label class="field-label">Color</label>
+                <select id="marker-color-select" class="sh-select mt6">
+                  <option value="celeste"  data-r="80"  data-g="180" data-b="255">Celeste</option>
+                  <option value="naranja"  data-r="255" data-g="160" data-b="60" >Naranja</option>
+                  <option value="verde"    data-r="63"  data-g="185" data-b="80" >Verde</option>
+                  <option value="rojo"     data-r="248" data-g="81"  data-b="73" >Rojo</option>
+                  <option value="amarillo" data-r="247" data-g="201" data-b="72" >Amarillo</option>
+                  <option value="blanco"   data-r="240" data-g="240" data-b="240">Blanco</option>
+                  <option value="violeta"  data-r="160" data-g="100" data-b="220">Violeta</option>
+                  <option value="rosa"     data-r="220" data-g="100" data-b="160">Rosa</option>
+                  <option value="negro"    data-r="20"  data-g="20"  data-b="20" >Negro</option>
+                </select></div>
+              <div class="form-group"><label class="field-label">Tamaño XY: <span id="sxy-val">1.5</span></label>
+                <input type="range" id="marker-scalexy" min="-1.0" max="8.0" step="0.1" value="1.5" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">Altura Z: <span id="sz-val">0.5</span></label>
+                <input type="range" id="marker-scalez" min="-1.0" max="8.0" step="0.1" value="0.5" class="mt6"/></div>
+            </div>
+            <button class="btn-primary mt14" id="btn-save-marker"><i class="fas fa-save"></i> Aplicar markers</button>
+          </div>
+          <div class="loc-card mb12">
+            <div class="loc-hdr"><div class="loc-hdr-l"><span class="dot blue"></span><i class="fas fa-box"></i><strong>Almacén</strong></div><span class="mbadge blue">● activo</span></div>
+            <p class="loc-coords" id="loc-stash-coords">—</p>
+            <div class="loc-acts"><button class="btn-lh" id="btn-stash-here"><i class="fas fa-crosshairs"></i> Mi posición</button><button class="btn-lm" id="btn-stash-manual"><i class="fas fa-keyboard"></i> Manual</button></div>
+          </div>
+          <div class="loc-card mb12">
+            <div class="loc-hdr"><div class="loc-hdr-l"><span class="dot orange"></span><i class="fas fa-tshirt"></i><strong>Vestuario</strong></div><span class="mbadge orange">● activo</span></div>
+            <p class="loc-coords" id="loc-clothing-coords">—</p>
+            <div class="loc-acts"><button class="btn-lh" id="btn-clothing-here"><i class="fas fa-crosshairs"></i> Mi posición</button><button class="btn-lm" id="btn-clothing-manual"><i class="fas fa-keyboard"></i> Manual</button></div>
+          </div>
+          <div class="loc-card mb12">
+            <div class="loc-hdr"><div class="loc-hdr-l"><span class="dot green2"></span><i class="fas fa-car"></i><strong>Garage / Spawn</strong></div><span class="mbadge green2">● activo</span></div>
+            <p class="loc-coords" id="loc-spawn-coords">—</p>
+            <div class="loc-acts"><button class="btn-lh" id="btn-spawn-here"><i class="fas fa-crosshairs"></i> Mi posición</button><button class="btn-lm" id="btn-spawn-manual"><i class="fas fa-keyboard"></i> Manual</button></div>
+          </div>
+          <div class="loc-card">
+            <div class="loc-hdr"><div class="loc-hdr-l"><span class="dot cyan"></span><i class="fas fa-map-pin"></i><strong>Salida del Vehículo</strong></div><span class="mbadge cyan">● activo</span></div>
+            <p class="loc-coords" id="loc-spawnpoint-coords">—</p>
+            <div class="loc-acts"><button class="btn-lh" id="btn-spawnpoint-here"><i class="fas fa-crosshairs"></i> Mi posición</button><button class="btn-lm" id="btn-spawnpoint-manual"><i class="fas fa-keyboard"></i> Manual</button></div>
+          </div>
+          <div class="loc-card mt12">
+            <div class="loc-hdr"><div class="loc-hdr-l"><span class="dot purple2"></span><i class="fas fa-tasks"></i><strong>Viajes Diarios</strong></div><span class="mbadge purple2">● activo</span></div>
+            <p class="loc-coords" id="loc-viajes_diarios-coords">—</p>
+            <div class="loc-acts"><button class="btn-lh" id="btn-viajes_diarios-here"><i class="fas fa-crosshairs"></i> Mi posición</button><button class="btn-lm" id="btn-viajes_diarios-manual"><i class="fas fa-keyboard"></i> Manual</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VEHÍCULOS -->
+      <div class="tab-panel" id="panel-vehiculos">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-car"></i> Vehículos del Job</div>
+          <div id="veh-no-perm" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para editar vehículos.</div>
+          <div class="info-banner mb16"><i class="fas fa-info-circle"></i> Vehículos disponibles. Se definen en <code>Config.SpawnVehicles</code>. Para usarlos, interactuá con el punto de <strong>Garage</strong>.</div>
+          <div id="vehicle-config-list" class="vehicle-grid"></div>
+        </div>
+      </div>
+
+      <!-- VIAJES DISPATCH -->
+      <div class="tab-panel" id="panel-viajes">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-route"></i> Viajes</div>
+          <div id="trips-active-panel" class="list-container"><p class="empty-msg">Sin viajes activos.</p></div>
+        </div>
+      </div>
+
+      <!-- VIAJES CONFIG -->
+      <div class="tab-panel" id="panel-viajes-config">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-sliders-h"></i> Configuración de Viajes</div>
+          <div id="viajes-no-perm" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para editar configuración de viajes.</div>
+          <div class="card mb16">
+            <div class="card-header"><i class="fas fa-dollar-sign"></i> Tarifas</div>
+            <div class="trip-config-grid mt14">
+              <div class="form-group"><label class="field-label">Precio inicial ($)</label><input type="number" id="tc-base" min="0" placeholder="1500" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">$ por unidad</label><input type="number" id="tc-perunit" min="0" placeholder="70" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">Unidad cada (metros)</label><input type="number" id="tc-meters" min="1" placeholder="40" class="mt6"/></div>
+            </div>
+            <button class="btn-primary mt14" id="btn-save-trip-config"><i class="fas fa-save"></i> Guardar Tarifas</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><i class="fas fa-hand-holding-usd"></i> Opciones de Propina</div>
+            <div class="trip-config-grid mt14">
+              <div class="form-group"><label class="field-label">Propina 1 ($)</label><input type="number" id="tc-tip1" min="0" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">Propina 2 ($)</label><input type="number" id="tc-tip2" min="0" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">Propina 3 ($)</label><input type="number" id="tc-tip3" min="0" class="mt6"/></div>
+              <div class="form-group"><label class="field-label">Propina 4 ($)</label><input type="number" id="tc-tip4" min="0" class="mt6"/></div>
+            </div>
+            <button class="btn-primary mt14" id="btn-save-tips"><i class="fas fa-save"></i> Guardar Propinas</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIAJES REALIZADOS -->
+      <div class="tab-panel" id="panel-viajes-realizados">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-history"></i> Viajes Realizados</div>
+          <div id="viajes-realizados-perm-warn" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para ver los viajes realizados.</div>
+          <div id="viajes-realizados-content">
+            <div class="log-toolbar mb12">
+              <button class="btn-outline btn-sm" id="btn-refresh-trip-history"><i class="fas fa-sync"></i> Actualizar</button>
+              <button class="btn-danger btn-sm" id="btn-clear-trip-history"><i class="fas fa-trash"></i> Limpiar</button>
+            </div>
+            <div id="trip-history-list" class="list-container"><p class="empty-msg">Cargando...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CUENTA EMPRESA -->
+      <div class="tab-panel" id="panel-empresa">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-building"></i> Cuenta Empresa</div>
+          <div id="empresa-perm-warn" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para operar la cuenta empresa.</div>
+          <div id="empresa-content">
+            <!-- Balance -->
+            <div class="empresa-balance-card mb16">
+              <p class="empresa-balance-label"><i class="fas fa-coins"></i> Saldo disponible</p>
+              <p class="empresa-balance-val" id="empresa-balance">$0</p>
+            </div>
+            <!-- Operaciones -->
+            <div class="empresa-ops-grid mb16">
+              <div class="card">
+                <div class="card-header"><i class="fas fa-arrow-up"></i> Depositar</div>
+                <div class="input-row mt12">
+                  <input type="number" id="empresa-deposit-amt" min="1" placeholder="Monto"/>
+                  <button class="btn-primary" id="btn-empresa-deposit"><i class="fas fa-plus"></i></button>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header"><i class="fas fa-arrow-down"></i> Retirar</div>
+                <div class="input-row mt12">
+                  <input type="number" id="empresa-withdraw-amt" min="1" placeholder="Monto"/>
+                  <button class="btn-primary" id="btn-empresa-withdraw"><i class="fas fa-minus"></i></button>
+                </div>
+              </div>
+              <div class="card" style="grid-column:span 2">
+                <div class="card-header"><i class="fas fa-gift"></i> Dar Bono a empleado</div>
+                <div class="input-row mt12">
+                  <input type="number" id="empresa-bonus-id" min="1" placeholder="ID jugador"/>
+                  <input type="number" id="empresa-bonus-amt" min="1" placeholder="Monto"/>
+                  <button class="btn-primary" id="btn-empresa-bonus"><i class="fas fa-paper-plane"></i> Enviar</button>
+                </div>
+              </div>
+            </div>
+            <!-- Movimientos -->
+            <div class="section-title mb8"><i class="fas fa-exchange-alt"></i> Últimos movimientos</div>
+            <div id="empresa-log-list" class="list-container"><p class="empty-msg">Sin movimientos.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICIO LOG -->
+      <div class="tab-panel" id="panel-servicio">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-clipboard-list"></i> Registro de Servicio</div>
+          <div class="log-toolbar mb12"><button class="btn-outline btn-sm" id="btn-refresh-log"><i class="fas fa-sync"></i> Actualizar</button></div>
+          <div id="service-log-list" class="log-list"><p class="empty-msg">Cargando...</p></div>
+        </div>
+      </div>
+
+      <!-- NIVEL / XP -->
+      <div class="tab-panel" id="panel-nivel">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-star"></i> Tu Nivel</div>
+          <div class="xp-card mb16">
+            <div class="xp-header">
+              <div class="xp-level-badge" id="xp-level-badge">0</div>
+              <div class="xp-info">
+                <p class="xp-label-name" id="xp-level-name">Aprendiz</p>
+                <p class="xp-label-xp" id="xp-label">0 / 100 XP</p>
+              </div>
+            </div>
+            <div class="xp-bar-bg"><div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div></div>
+          </div>
+          <div class="section-title">Niveles disponibles</div>
+          <div id="levels-list" class="list-container"></div>
+        </div>
+      </div>
+
+      <!-- PERMISOS -->
+      <div class="tab-panel" id="panel-permisos">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-shield-alt"></i> Permisos por Rango</div>
+          <div id="permisos-no-owner" class="perm-warn hidden"><i class="fas fa-lock"></i> Solo el propietario puede cambiar permisos.</div>
+          <div class="info-banner mb16"><i class="fas fa-info-circle"></i> Definí qué paneles puede editar cada rango. Los propietarios siempre tienen acceso total.</div>
+          <div id="perms-grid" class="perms-grid"></div>
+        </div>
+      </div>
+
+      <!-- ALERTAS CONFIG -->
+      <div class="tab-panel" id="panel-alertas_config">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-bell"></i> Configuración de Alertas</div>
+
+          <!-- Sin permiso -->
+          <div id="alertas-no-perm" class="perm-warn hidden">
+            <i class="fas fa-lock"></i> Sin permiso para editar la configuración de alertas.
+          </div>
+
+          <!-- Contenido editable -->
+          <div id="alertas-content">
+
+            <!-- TripNotify -->
+            <div class="card mb16">
+              <div class="card-header">
+                <i class="fas fa-taxi"></i> Alerta de viaje (taxista)
+              </div>
+              <p class="field-sublabel mt8 mb12">
+                Tarjeta que aparece cuando un civil pide un taxi. Podés cambiar desde dónde aparece y cuánto tiempo permanece visible.
+              </p>
+
+              <div class="alertas-grid mt14">
+                <div class="form-group">
+                  <label class="field-label">Posición en pantalla</label>
+                  <select id="ac-tn-pos" class="sh-select mt6">
+                    <option value="top-right">Arriba derecha</option>
+                    <option value="top-left">Arriba izquierda</option>
+                    <option value="top-center">Arriba centro</option>
+                    <option value="center-right">Centro derecha</option>
+                    <option value="center-left">Centro izquierda</option>
+                    <option value="center">Centro</option>
+                    <option value="bottom-right">Abajo derecha</option>
+                    <option value="bottom-left">Abajo izquierda</option>
+                    <option value="bottom-center">Abajo centro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="field-label">Duración (segundos)</label>
+                  <input type="number" id="ac-tn-dur" min="5" max="120" placeholder="20" class="mt6"/>
+                  <p class="field-sublabel mt4">Tiempo antes de que desaparezca sola. Mínimo 5s, máximo 120s.</p>
+                </div>
+              </div>
+
+              <!-- Preview mini de posición TripNotify -->
+              <div class="ac-preview-wrap mt14">
+                <p class="field-label mb6">Vista previa de posición</p>
+                <div class="ac-preview-screen" id="ac-tn-preview">
+                  <div class="ac-preview-dot" id="ac-tn-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ClientUI -->
+            <div class="card mb16">
+              <div class="card-header">
+                <i class="fas fa-user"></i> Interfaz del civil durante el viaje
+              </div>
+              <p class="field-sublabel mt8 mb12">
+                Panel que le aparece al civil mientras viaja (costo, propinas, cambio de destino). Elegí desde dónde se muestra.
+              </p>
+
+              <div class="alertas-grid mt14">
+                <div class="form-group">
+                  <label class="field-label">Posición en pantalla</label>
+                  <select id="ac-cu-pos" class="sh-select mt6">
+                    <option value="top-right">Arriba derecha</option>
+                    <option value="top-left">Arriba izquierda</option>
+                    <option value="top-center">Arriba centro</option>
+                    <option value="bottom-right">Abajo derecha</option>
+                    <option value="bottom-left">Abajo izquierda</option>
+                    <option value="bottom-center">Abajo centro</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Preview mini ClientUI -->
+              <div class="ac-preview-wrap mt14">
+                <p class="field-label mb6">Vista previa de posición</p>
+                <div class="ac-preview-screen" id="ac-cu-preview">
+                  <div class="ac-preview-dot" id="ac-cu-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- NpcTripUI — panel de misión NPC (taxista) -->
+            <div class="card mb16">
+              <div class="card-header">
+                <i class="fas fa-robot"></i> Interfaz de misión NPC (taxista)
+              </div>
+              <p class="field-sublabel mt8 mb12">
+                Panel que ve el taxista mientras lleva un pasajero NPC. Muestra distancia, pago, barras de stress y cronómetro. Aplica a todos los grados (Básico, Intermedio, etc.).
+              </p>
+
+              <div class="alertas-grid mt14">
+                <div class="form-group">
+                  <label class="field-label">Posición en pantalla</label>
+                  <select id="ac-npc-pos" class="sh-select mt6">
+                    <option value="top-right">Arriba derecha</option>
+                    <option value="top-left">Arriba izquierda</option>
+                    <option value="top-center">Arriba centro</option>
+                    <option value="bottom-right">Abajo derecha</option>
+                    <option value="bottom-left" selected>Abajo izquierda</option>
+                    <option value="bottom-center">Abajo centro</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Preview mini NpcTripUI -->
+              <div class="ac-preview-wrap mt14">
+                <p class="field-label mb6">Vista previa de posición</p>
+                <div class="ac-preview-screen" id="ac-npc-preview">
+                  <div class="ac-preview-dot" id="ac-npc-dot"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón guardar -->
+            <button class="btn-primary" id="btn-save-alertas">
+              <i class="fas fa-save"></i> Guardar y aplicar a todos
+            </button>
+            <p class="field-sublabel mt8">
+              Los cambios se aplican en tiempo real a todos los taxistas en servicio.
+            </p>
+
+          </div><!-- /alertas-content -->
+        </div>
+      </div>
+      <!-- /ALERTAS CONFIG -->
+
+      <!-- INVITAR -->
+      <div class="tab-panel" id="panel-invitar">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-user-plus"></i> Invitar</div>
+          <div id="invite-no-perm" class="perm-warn hidden"><i class="fas fa-lock"></i> Sin permiso para invitar.</div>
+          <div class="form-group mb14"><label class="field-label">Rango a asignar</label><select id="invite-grade-select" class="sh-select mt6"></select></div>
+          <div class="card mb12">
+            <div class="card-header"><i class="fas fa-id-card"></i> Por ID</div>
+            <div class="input-row mt12"><input type="number" id="invite-id-input" placeholder="ID del jugador" min="1"/><button class="btn-primary" id="btn-invite-id">Invitar</button></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><i class="fas fa-location-arrow"></i> Jugador Cercano (5m)</div>
+            <button class="btn-primary full-width mt12" id="btn-invite-nearby"><i class="fas fa-wifi"></i> Invitar Cercano</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTAS -->
+      <div class="tab-panel" id="panel-notas">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-sticky-note"></i> Notas del Equipo</div>
+
+          <!-- Mi nota -->
+          <div class="card mb16">
+            <div class="card-header"><i class="fas fa-pen"></i> Mi Nota</div>
+            <textarea id="my-note-input" class="note-textarea mt12" maxlength="300" placeholder="Escribí tu nota (máx. 300 caracteres)..."></textarea>
+            <div class="note-char-count"><span id="note-char">0</span>/300</div>
+            <div class="note-actions mt12">
+              <button class="btn-primary" id="btn-save-note"><i class="fas fa-save"></i> Guardar</button>
+              <button class="btn-outline btn-sm" id="btn-delete-note"><i class="fas fa-trash"></i> Eliminar mi nota</button>
+            </div>
+            <div class="note-board-actions mt12">
+              <button class="btn-board-place" id="btn-place-board"><i class="fas fa-map-pin"></i> Colocar nota en pizarra</button>
+              <button class="btn-board-remove" id="btn-remove-board"><i class="fas fa-times-circle"></i> Quitar nota de pizarra</button>
+            </div>
+          </div>
+
+          <!-- Notas de todos -->
+          <div class="section-title mb8"><i class="fas fa-users"></i> Notas del equipo</div>
+          <div id="notes-list" class="list-container"><p class="empty-msg">Sin notas aún.</p></div>
+        </div>
+      </div>
+
+      <!-- RADIO -->
+      <div class="tab-panel" id="panel-radio">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-broadcast-tower"></i> Frecuencia Radial</div>
+
+          <div id="radio-duty-warn" class="duty-req-banner hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            Debés <strong>Iniciar Servicio</strong> para usar la radio.
+          </div>
+
+          <div class="section-title mb8"><i class="fas fa-signal"></i> Canales disponibles</div>
+          <div id="radio-channels" class="radio-channels-grid"></div>
+
+          <div class="section-title mb8 mt20"><i class="fas fa-headset"></i> En servicio ahora</div>
+          <div id="radio-duty-list" class="list-container"><p class="empty-msg">Nadie en servicio.</p></div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="tab-panel" id="panel-faq">
+        <div class="panel-scroll">
+          <div class="panel-title"><i class="fas fa-book-open"></i> FAQ — Info de la Empresa</div>
+
+          <!-- Hero -->
+          <div class="faq-hero-card">
+            <div class="faq-hero-icon"><i class="fas fa-tablet-alt"></i></div>
+            <div class="faq-hero-text">
+              <div class="faq-hero-title">Guía de uso para la Tablet de la Empresa</div>
+              <div class="faq-hero-sub">Información interna. Solo lectura.</div>
+            </div>
+          </div>
+
+          <!-- Secciones dinámicas -->
+          <div id="faq-sections-container"></div>
+
+          <!-- Comandos -->
+          <div class="faq-commands-card">
+            <div class="faq-commands-header">
+              <i class="fas fa-terminal"></i>
+              <span>Comandos para mejor movilidad dentro del Sistema Operativo</span>
+            </div>
+            <div class="faq-commands-list" id="faq-commands-list"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL coords -->
+<div id="modal-overlay" class="hidden">
+  <div class="modal">
+    <div class="modal-hdr"><span id="modal-title">Coordenadas</span><button class="icon-btn" id="btn-close-modal"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="coords-grid">
+        <div class="form-group"><label class="field-label">X</label><input type="number" id="modal-x" step="0.01" placeholder="0.0" class="mt6"/></div>
+        <div class="form-group"><label class="field-label">Y</label><input type="number" id="modal-y" step="0.01" placeholder="0.0" class="mt6"/></div>
+        <div class="form-group"><label class="field-label">Z</label><input type="number" id="modal-z" step="0.01" placeholder="0.0" class="mt6"/></div>
+        <div class="form-group"><label class="field-label">Heading</label><input type="number" id="modal-heading" step="0.1" placeholder="0.0" class="mt6"/></div>
+      </div>
+    </div>
+    <div class="modal-ftr"><button class="btn-outline" id="btn-modal-cancel">Cancelar</button><button class="btn-primary" id="btn-modal-confirm"><i class="fas fa-save"></i> Guardar</button></div>
+  </div>
+</div>
+
+<!-- ════ DAILY MISSIONS OVERLAY ════ -->
+<div id="daily-missions-overlay" class="hidden">
+  <div id="daily-missions-panel">
+    <div class="dm-header">
+      <div class="dm-header-left"><i class="fas fa-tasks"></i><span>Misiones Diarias de NPC</span></div>
+      <div class="dm-header-right">
+        <span class="dm-reset-label">Reset en: <strong id="dm-reset-timer">—</strong></span>
+        <button class="icon-btn" id="btn-close-daily-missions"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="dm-body">
+      <p class="dm-subtitle">Completá misiones para ganar XP y dinero.</p>
+      <div id="dm-missions-list" class="dm-list"><p class="empty-msg">Cargando misiones...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ NPC TRIP UI ════ -->
+<div id="npc-trip-overlay" class="hidden">
+  <div id="npc-trip-panel">
+    <div class="ntrip-header">
+      <span id="ntrip-grade-label" class="ntrip-grade-badge">Básico</span>
+      <span class="ntrip-title"><i class="fas fa-robot"></i> Misión NPC</span>
+    </div>
+    <div class="ntrip-stage" id="ntrip-stage-pickup"><i class="fas fa-map-marker-alt"></i> Dirigite al punto de recogida</div>
+    <div class="ntrip-stage hidden" id="ntrip-stage-dropoff"><i class="fas fa-flag-checkered"></i> <span id="ntrip-drop-zone">Entregar pasajero</span></div>
+    <div id="ntrip-timer-row" class="ntrip-timer-row hidden">
+      <i class="fas fa-stopwatch"></i> Tiempo: <span id="ntrip-timer-val" class="ntrip-timer-val">0:00</span>
+    </div>
+    <div class="ntrip-metrics" id="ntrip-metrics" style="display:none">
+      <div class="ntrip-row"><span>Distancia</span><span id="ntrip-meters">0 m</span></div>
+      <div class="ntrip-row"><span>Pago actual</span><span id="ntrip-cost" class="cost-val">$0</span></div>
+      <div class="ntrip-bar-section mt10">
+        <div class="ntrip-bar-label"><i class="fas fa-tachometer-alt"></i> Stress <span id="stress-pct" class="bar-pct">0%</span></div>
+        <div class="ntrip-bar-bg"><div class="ntrip-bar-fill stress-fill" id="stress-bar" style="width:0%"></div></div>
+        <p class="ntrip-bar-hint">Sube superando 120 km/h. Al 100% se bloquea → −25% pago.</p>
+      </div>
+      <div class="ntrip-bar-section mt8">
+        <div class="ntrip-bar-label"><i class="fas fa-exclamation-triangle"></i> Asustado <span id="scared-pct" class="bar-pct">0%</span></div>
+        <div class="ntrip-bar-bg"><div class="ntrip-bar-fill scared-fill" id="scared-bar" style="width:0%"></div></div>
+        <p class="ntrip-bar-hint">Sube con impactos. Al 100% → −25% pago.</p>
+      </div>
+      <div id="ntrip-penalties" class="ntrip-penalties"></div>
+    </div>
+    <div class="ntrip-pay-base"><span>Pago base:</span><span id="ntrip-base-pay" class="cost-val">$0</span></div>
+  </div>
+</div>
+
+<script>
+// ── FAQ render — contenido hardcodeado desde config.lua ─────────
+// Editá este objeto para cambiar lo que aparece en la tablet.
+// Debe coincidir con Config.Faq en config.lua
+var FAQ_DATA = {
+//   sections: [
+//     {
+//       icon: 'taxi',
+//       title: 'Inicio de Servicio',
+//       items: [
+//         { q: '¿Cómo empiezo a trabajar?',      a: 'Presioná "Iniciar Servicio" en el menú lateral. El banner pasará a verde.' },
+//         { q: '¿Dónde spawneo mi vehículo?',    a: 'Dirigite al garage marcado en el mapa y usá el panel de Vehículos.' },
+//       ]
+//     },
+//     {
+//       icon: 'route',
+//       title: 'Viajes',
+//       items: [
+//         { q: '¿Cómo acepto un viaje?',         a: 'Cuando un civil llame al taxi recibirás una notificación. Tenés unos segundos para aceptar o ignorar.' },
+//         { q: '¿Cómo finalizo un viaje?',       a: 'Llevá al pasajero al destino. Una vez llegado, usá el botón "Finalizar Viaje" desde el dashboard.' },
+//         { q: '¿Qué pasa si cancelo?',          a: 'Podés cancelar desde el dashboard. Cancelaciones frecuentes afectan tu reputación interna.' },
+//       ]
+//     },
+//     {
+//       icon: 'dollar-sign',
+//       title: 'Salarios y Propinas',
+//       items: [
+//         { q: '¿Cuándo cobro el salario?',      a: 'Se paga automáticamente en intervalos regulares mientras estés en servicio.' },
+//         { q: '¿Qué son las propinas?',         a: 'Los pasajeros pueden dejarte propina al finalizar el viaje. Se acredita junto al pago.' },
+//       ]
+//     },
+//     {
+//       icon: 'star',
+//       title: 'Niveles y XP',
+//       items: [
+//         { q: '¿Cómo subo de nivel?',           a: 'Cada viaje completado otorga XP. Al acumular la cantidad requerida subís de nivel automáticamente.' },
+//         { q: '¿Para qué sirven los niveles?',  a: 'Desbloquean vehículos de mayor gama y acceso a rutas o misiones exclusivas.' },
+//       ]
+//     },
+//     {
+//       icon: 'shield-alt',
+//       title: 'Rango y Permisos',
+//       items: [
+//         { q: '¿Quién gestiona empleados?',     a: 'Supervisor, Sub-Jefe y Jefe tienen permisos de gestión. Revisá el panel de Permisos.' },
+//         { q: '¿Cómo me ascienden?',            a: 'Un superior lo hace desde el panel de Empleados. Hablá con tu jefe para evaluar tu desempeño.' },
+//       ]
+//     },
+//   ],
+  commands: [
+    '/dartaxijob + id',
+    '/sacartaxijob + id',
+    '/taxijob',
+    '/calltaxi',
+    '/taxiropa',
+  ]
+};
+
+// document.addEventListener('DOMContentLoaded', function() {
+//   // Secciones
+//   var container = document.getElementById('faq-sections-container');
+//   if (container) {
+//     container.innerHTML = FAQ_DATA.sections.map(function(sec) {
+//       var items = (sec.items || []).map(function(item) {
+//         return '<div class="faq-item">' +
+//           '<div class="faq-item-q"><i class="fas fa-chevron-right faq-chevron"></i>' + item.q + '</div>' +
+//           '<div class="faq-item-a">' + item.a + '</div>' +
+//           '</div>';
+//       }).join('');
+//       return '<div class="faq-section-card">' +
+//         '<div class="faq-section-header"><i class="fas fa-' + (sec.icon || 'info-circle') + '"></i><span>' + sec.title + '</span></div>' +
+//         '<div class="faq-section-body">' + items + '</div>' +
+//         '</div>';
+//     }).join('');
+//   }
+  // Comandos
+  var cmdList = document.getElementById('faq-commands-list');
+  if (cmdList) {
+    cmdList.innerHTML = FAQ_DATA.commands.map(function(cmd) {
+      return '<div class="faq-cmd-row">' +
+        '<span class="faq-cmd-tag"><i class="fas fa-angle-right"></i> ' + cmd + '</span>' +
+        '</div>';
+    }).join('');
+  }
+// });
+</script>
+<script src="script.js"></script>
+</body>
+</html>
